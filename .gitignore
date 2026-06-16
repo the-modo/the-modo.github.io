@@ -1,0 +1,7 @@
+node_modules/
+.next/
+out/
+.video-tmp/
+*.log
+.DS_Store
+.env*.local
