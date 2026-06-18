@@ -19,25 +19,18 @@ export default function DownloadPage() {
     e.preventDefault()
     setBusy(true); setError(null)
     try {
-      const subject = `Modo AI Gateway — download request from ${name || email}`
-      const body =
-        `Name: ${name || '—'}\n` +
-        `Email: ${email}\n\n` +
-        `Please send me the download link for Modo AI Gateway.\n\n` +
-        `(Sent from the modo landing page.)`
-      const to  = 'r.dilanperera@gmail.com'
-      const cc  = 'shamisathindra@gmail.com'
-      const gmailUrl =
-        `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}` +
-        `&cc=${encodeURIComponent(cc)}` +
-        `&su=${encodeURIComponent(subject)}` +
-        `&body=${encodeURIComponent(body)}`
-      // Open Gmail compose in a new tab. Works for every Gmail user without
-      // any backend, activation step, or mixed-content issue.
-      window.open(gmailUrl, '_blank', 'noopener,noreferrer')
+      const r = await fetch(`${API_BASE}/download-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok || !d?.ok) {
+        throw new Error(d?.error ?? `Server returned ${r.status}`)
+      }
       setSent(true)
     } catch (err: any) {
-      setError(err?.message ?? 'Could not open mail composer — please email r.dilanperera@gmail.com directly')
+      setError(err?.message ?? 'Could not send — please try again later')
     } finally {
       setBusy(false)
     }
@@ -145,14 +138,12 @@ function Sent({ name }: { name: string }) {
         style={{ background: 'rgba(16,185,129,0.18)', border: '1px solid rgba(16,185,129,0.40)' }}>
         <Check size={28} className="text-emerald-300"/>
       </div>
-      <h1 className="text-2xl md:text-3xl font-bold gradient-text mb-3">Almost there{name ? `, ${name.split(' ')[0]}` : ''}!</h1>
+      <h1 className="text-2xl md:text-3xl font-bold gradient-text mb-3">Check your inbox{name ? `, ${name.split(' ')[0]}` : ''}!</h1>
       <p className="text-sm t2 max-w-lg mx-auto leading-relaxed mb-2">
-        We&apos;ve opened a pre-filled email in a new tab — just hit{' '}
-        <strong className="t1">Send</strong> to let us know who you are.
+        We&apos;ve emailed your download link, quick-start instructions and the license terms.
       </p>
       <p className="text-[11px] t4 max-w-md mx-auto leading-relaxed mb-7">
-        Pop-up blocked? Send the email directly to{' '}
-        <a href="mailto:r.dilanperera@gmail.com" className="text-indigo-400 hover:text-indigo-300">r.dilanperera@gmail.com</a>.
+        Didn&apos;t arrive within a few minutes? Check your spam folder — or use the direct download link below.
       </p>
 
       <div className="rounded-2xl p-5 mb-7"
