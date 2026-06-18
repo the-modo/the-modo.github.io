@@ -18,46 +18,26 @@ export default function DownloadPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setBusy(true); setError(null)
-    const firstName = (name || email.split('@')[0]).split(/\s+/)[0]
     try {
-      // Formsubmit.co — free HTTPS form-to-email service. First POST to a
-      // new recipient triggers a one-time "activate" email; after one click
-      // every subsequent submission is forwarded with CC + autoresponse.
-      const r = await fetch('https://formsubmit.co/ajax/r.dilanperera@gmail.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          name:  name || '—',
-          email,
-          _cc:        'shamisathindra@gmail.com',
-          _subject:   `Modo AI Gateway — download request from ${name || email}`,
-          _replyto:   email,
-          _template:  'table',
-          _captcha:   'false',
-          _autoresponse:
-            `Hi ${firstName},\n\n` +
-            `Thanks for downloading Modo AI Gateway — the fastest open-source AI gateway, written in Rust.\n\n` +
-            `Your download:\n  http://dilans.duckdns.org:4893/modo-latest.zip\n\n` +
-            `What's inside:\n` +
-            `  • Single static Rust binary\n` +
-            `  • Unified OpenAI-compatible API across all major providers\n` +
-            `  • Visual routing canvas with conditions and fallbacks\n` +
-            `  • Semantic cache, guardrails, content shield, MCP gateway\n` +
-            `  • Real-time analytics, audit logs, key management\n\n` +
-            `License & usage:\n` +
-            `Modo AI Gateway is distributed for non-commercial use only under the included license. Personal, evaluation, research and educational use is fully permitted.\n\n` +
-            `Not for production use:\n` +
-            `Routing live customer traffic, processing paid services, or any commercial deployment requires a separate commercial license — please reply to this email before going to production.\n\n` +
-            `— The Modo team`,
-        }),
-      })
-      const d = await r.json().catch(() => ({}))
-      if (!r.ok || (d?.success !== 'true' && d?.success !== true)) {
-        throw new Error(d?.message ?? `Submission failed (${r.status})`)
-      }
+      const subject = `Modo AI Gateway — download request from ${name || email}`
+      const body =
+        `Name: ${name || '—'}\n` +
+        `Email: ${email}\n\n` +
+        `Please send me the download link for Modo AI Gateway.\n\n` +
+        `(Sent from the modo landing page.)`
+      const to  = 'r.dilanperera@gmail.com'
+      const cc  = 'shamisathindra@gmail.com'
+      const gmailUrl =
+        `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}` +
+        `&cc=${encodeURIComponent(cc)}` +
+        `&su=${encodeURIComponent(subject)}` +
+        `&body=${encodeURIComponent(body)}`
+      // Open Gmail compose in a new tab. Works for every Gmail user without
+      // any backend, activation step, or mixed-content issue.
+      window.open(gmailUrl, '_blank', 'noopener,noreferrer')
       setSent(true)
     } catch (err: any) {
-      setError(err?.message ?? 'Could not send — please try again later')
+      setError(err?.message ?? 'Could not open mail composer — please email r.dilanperera@gmail.com directly')
     } finally {
       setBusy(false)
     }
@@ -158,21 +138,35 @@ export default function DownloadPage() {
 }
 
 function Sent({ name }: { name: string }) {
+  const DOWNLOAD = 'http://dilans.duckdns.org:4893/modo-latest.zip'
   return (
     <div className="glass-strong rounded-3xl p-10 text-center">
       <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
         style={{ background: 'rgba(16,185,129,0.18)', border: '1px solid rgba(16,185,129,0.40)' }}>
         <Check size={28} className="text-emerald-300"/>
       </div>
-      <h1 className="text-2xl md:text-3xl font-bold gradient-text mb-3">Check your inbox{name ? `, ${name.split(' ')[0]}` : ''}</h1>
-      <p className="text-sm t2 max-w-md mx-auto leading-relaxed mb-2">
-        Your download link is on its way. It includes your copy of Modo AI Gateway,
-        quick-start instructions and the license terms.
+      <h1 className="text-2xl md:text-3xl font-bold gradient-text mb-3">Almost there{name ? `, ${name.split(' ')[0]}` : ''}!</h1>
+      <p className="text-sm t2 max-w-lg mx-auto leading-relaxed mb-2">
+        We&apos;ve opened a pre-filled email in a new tab — just hit{' '}
+        <strong className="t1">Send</strong> to let us know who you are.
       </p>
       <p className="text-[11px] t4 max-w-md mx-auto leading-relaxed mb-7">
-        Didn&apos;t receive it within a few minutes? Check your spam folder or{' '}
-        <Link href="/#contact" className="text-indigo-400 hover:text-indigo-300">contact us</Link>.
+        Pop-up blocked? Send the email directly to{' '}
+        <a href="mailto:r.dilanperera@gmail.com" className="text-indigo-400 hover:text-indigo-300">r.dilanperera@gmail.com</a>.
       </p>
+
+      <div className="rounded-2xl p-5 mb-7"
+        style={{ background: 'rgba(99,102,241,0.10)', border: '1px solid rgba(99,102,241,0.30)' }}>
+        <div className="text-[10px] uppercase tracking-wider t3 mb-2">Your direct download</div>
+        <a href={DOWNLOAD}
+          className="btn-primary inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white">
+          <Download size={15}/> Download modo-latest.zip
+        </a>
+        <div className="text-[10px] t4 mt-3 max-w-sm mx-auto leading-relaxed">
+          By downloading you agree to the non-commercial license. Commercial use requires a separate license — see the email you just sent.
+        </div>
+      </div>
+
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link href="/"
           className="btn-secondary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white">

@@ -20,36 +20,26 @@ export function Contact() {
     e.preventDefault()
     setSubmitting(true); setError(null)
     try {
-      // Formsubmit.co — free HTTPS form-to-email forwarder.
-      const r = await fetch('https://formsubmit.co/ajax/r.dilanperera@gmail.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          name:    form.name,
-          email:   form.email,
-          company: form.company || '—',
-          intent:  form.intent,
-          message: form.message,
-          _cc:       'shamisathindra@gmail.com',
-          _subject:  `Modo contact — ${form.intent} from ${form.name}`,
-          _replyto:  form.email,
-          _template: 'table',
-          _captcha:  'false',
-          _autoresponse:
-            `Hi ${form.name.split(/\s+/)[0]},\n\n` +
-            `Thanks for reaching out about Modo AI Gateway — we've received your ` +
-            `${form.intent} inquiry and will reply within 24 hours.\n\n` +
-            `— The Modo team`,
-        }),
-      })
-      const d = await r.json().catch(() => ({}))
-      if (!r.ok || (d?.success !== 'true' && d?.success !== true)) {
-        throw new Error(d?.message ?? `Submission failed (${r.status})`)
-      }
+      const subject = `Modo contact — ${form.intent} from ${form.name}`
+      const body =
+        `Name: ${form.name}\n` +
+        `Email: ${form.email}\n` +
+        `Company: ${form.company || '—'}\n` +
+        `Intent: ${form.intent}\n\n` +
+        `${form.message}\n\n` +
+        `(Sent from the modo landing page.)`
+      const to  = 'r.dilanperera@gmail.com'
+      const cc  = 'shamisathindra@gmail.com'
+      const gmailUrl =
+        `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}` +
+        `&cc=${encodeURIComponent(cc)}` +
+        `&su=${encodeURIComponent(subject)}` +
+        `&body=${encodeURIComponent(body)}`
+      window.open(gmailUrl, '_blank', 'noopener,noreferrer')
       setSubmitted(true)
       setForm({ name: '', email: '', company: '', intent: 'commercial', message: '' })
     } catch (err: any) {
-      setError(err?.message ?? 'Could not send — please try again later')
+      setError(err?.message ?? 'Could not open mail composer — please email r.dilanperera@gmail.com directly')
     } finally {
       setSubmitting(false)
     }
@@ -122,10 +112,12 @@ export function Contact() {
                   style={{ background: 'rgba(16,185,129,0.18)', border: '1px solid rgba(16,185,129,0.40)' }}>
                   <Check size={24} className="text-emerald-300"/>
                 </div>
-                <div className="text-xl font-semibold t1 mb-2">Thanks — message received</div>
+                <div className="text-xl font-semibold t1 mb-2">Almost there!</div>
                 <p className="text-sm t3 max-w-md mx-auto leading-relaxed">
-                  We&apos;ve got your message and will reply within 24 hours.
-                  Meanwhile, feel free to explore the docs and download Modo.
+                  We&apos;ve opened a pre-filled email in a new tab — just hit <strong className="t1">Send</strong> and we&apos;ll reply within 24 hours.
+                </p>
+                <p className="text-[11px] t4 max-w-md mx-auto mt-2">
+                  Pop-up blocked? Email <a href="mailto:r.dilanperera@gmail.com" className="text-indigo-400 hover:text-indigo-300">r.dilanperera@gmail.com</a> directly.
                 </p>
                 <button onClick={() => setSubmitted(false)}
                   className="btn-secondary mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white">
