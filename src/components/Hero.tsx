@@ -11,8 +11,8 @@ export function Hero() {
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 animate-fade-up leading-[1.05]">
-          <span className="gradient-text">One gateway</span><br/>
-          <span className="t1">for every AI provider</span>
+          <span className="gradient-text">Open Source Gateway</span><br/>
+          <span className="t1">with Everything You Need</span>
         </h1>
 
         <p className="text-lg md:text-xl t2 max-w-3xl mx-auto mb-9 leading-relaxed animate-fade-up" style={{ animationDelay: '0.15s', opacity: 0 }}>
