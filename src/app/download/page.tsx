@@ -131,7 +131,6 @@ export default function DownloadPage() {
 }
 
 function Sent({ name }: { name: string }) {
-  const DOWNLOAD = 'http://dilans.duckdns.org:4893/modo-latest.zip'
   return (
     <div className="glass-strong rounded-3xl p-10 text-center">
       <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
@@ -142,21 +141,9 @@ function Sent({ name }: { name: string }) {
       <p className="text-sm t2 max-w-lg mx-auto leading-relaxed mb-2">
         We&apos;ve emailed your download link, quick-start instructions and the license terms.
       </p>
-      <p className="text-[11px] t4 max-w-md mx-auto leading-relaxed mb-7">
-        Didn&apos;t arrive within a few minutes? Check your spam folder — or use the direct download link below.
+      <p className="text-[11px] t4 max-w-md mx-auto leading-relaxed mb-9">
+        Didn&apos;t arrive within a few minutes? Check your spam folder — or reach out via the contact form.
       </p>
-
-      <div className="rounded-2xl p-5 mb-7"
-        style={{ background: 'rgba(99,102,241,0.10)', border: '1px solid rgba(99,102,241,0.30)' }}>
-        <div className="text-[10px] uppercase tracking-wider t3 mb-2">Your direct download</div>
-        <a href={DOWNLOAD}
-          className="btn-primary inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white">
-          <Download size={15}/> Download modo-latest.zip
-        </a>
-        <div className="text-[10px] t4 mt-3 max-w-sm mx-auto leading-relaxed">
-          By downloading you agree to the non-commercial license. Commercial use requires a separate license — see the email you just sent.
-        </div>
-      </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link href="/"
