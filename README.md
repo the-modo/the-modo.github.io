@@ -1,37 +1,74 @@
-# Modo AI Gateway — Landing site
+<div align="center">
 
-Marketing site for **Modo AI Gateway** — the open-source AI gateway in Rust.
+<img src="public/logo.svg" width="80" alt="Modo AI Gateway"/>
 
-Static Next.js site, deployed to GitHub Pages by the workflow in
-`.github/workflows/deploy.yml` on every push to `main`.
+# Modo AI Gateway — Landing Site
 
-Live at **https://the-modo.github.io/ai-gateway-landing/**.
+The official marketing site for [Modo AI Gateway](https://github.com/the-modo/ai-gateway).
+Live at **https://the-modo.github.io/**.
 
-## Local development
+[![License: Non-Commercial](https://img.shields.io/badge/License-Non--Commercial-amber.svg)](https://github.com/the-modo/ai-gateway/blob/main/LICENSE)
+
+</div>
+
+---
+
+> ## ⚠ Non-commercial use only
+>
+> The Modo AI Gateway product is distributed for **non-commercial use only**.
+> Commercial deployments require a separate commercial license — please
+> [contact us](https://the-modo.github.io/#contact) *before* going to production.
+> Full terms: [LICENSE](https://github.com/the-modo/ai-gateway/blob/main/LICENSE).
+
+---
+
+## What's here
+
+This repository is a static Next.js site. On every push to `main`, GitHub
+Actions runs `npm run build` and publishes `out/` to GitHub Pages.
+
+- **Hero, features, product tour, workflows, license, contact** — all client-side React, no backend at request time
+- **Real dashboard screenshots and recordings** under `public/screenshots/`
+- **Forms** (`/download`, `#contact`) POST to a Python backend over HTTPS that sends mail via Gmail SMTP
+
+## Stack
+
+- Next.js 14 (`output: 'export'`) → static HTML/CSS/JS
+- Tailwind utility classes + a thin custom CSS layer for the aurora aesthetic
+- Lucide icons, plain `<video>` elements with first-frame MP4 posters
+- GitHub Actions → GitHub Pages (workflow in `.github/workflows/deploy.yml`)
+
+## Develop
 
 ```bash
 npm install
-npm run dev
+npm run dev   # http://localhost:3000
 ```
 
 ## Build
 
 ```bash
-npm run build
+npm run build     # static export → out/
 ```
 
-Static output goes to `out/`. The workflow uploads that as the Pages artifact.
+## Regenerate screenshots
 
-## Backend
+Real captures from the live dashboard via Playwright. Requires an SSH tunnel
+to a running gateway (the script uses `localhost:8090` by default):
 
-The contact form and download-request flow live in a separate service —
-[ai-gateway-landing-backend](https://github.com/the-modo/ai-gateway-landing-backend).
+```bash
+ssh -L 8090:localhost:4892 -L 4891:localhost:4891 dilan@your-server
+node scripts/capture.mjs        # all dashboard pages
+node scripts/capture-hero.mjs   # canvas-only HD hero
+```
 
-Override the API base at build time with the repository variable
-`NEXT_PUBLIC_API_BASE` (Settings → Secrets and variables → Actions → Variables).
+## The product
 
-## Screenshots
+The actual Modo AI Gateway lives at
+[github.com/the-modo/ai-gateway](https://github.com/the-modo/ai-gateway) —
+see its README for features and the [SETUP guide](https://github.com/the-modo/ai-gateway/blob/main/SETUP.md)
+for installation.
 
-Real dashboard captures live in `public/screenshots/`. They were recorded
-with `scripts/capture.mjs` against an SSH-tunneled dashboard; see that file
-if you need to regenerate them.
+---
+
+© Modo AI Gateway. All rights reserved. Free for non-commercial use.
