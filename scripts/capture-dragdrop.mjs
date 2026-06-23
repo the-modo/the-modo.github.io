@@ -103,7 +103,14 @@ await mkdir(OUT, { recursive: true })
 await rm(VID_TMP, { recursive: true, force: true }).catch(() => {})
 await mkdir(VID_TMP, { recursive: true })
 
-const browser = await chromium.launch()
+// Pin the dashboard hostname inside Chromium so this works even when the
+// host machine's DNS resolver is flaky. Only applied when DASHBOARD_URL
+// references the production hostname.
+const launchArgs = []
+if (process.env.DASHBOARD_URL?.includes('modo.dilans.duckdns.org')) {
+  launchArgs.push('--host-resolver-rules=MAP modo.dilans.duckdns.org 112.135.176.141')
+}
+const browser = await chromium.launch({ args: launchArgs })
 
 async function login(page) {
   await page.goto(`${DASHBOARD}/login/`)
@@ -136,6 +143,48 @@ async function seedRoute(page) {
       localStorage.setItem('ai-gateway:routes', JSON.stringify([route, ...others]))
     } catch {}
   }, EMPTY_ROUTE)
+}
+
+/* Return the DOM data-id of the most recently rendered node matching the
+   given ReactFlow type ('condition', 'provider', etc.). The drop helper
+   returns this so the caller can wire the new node up immediately. */
+async function lastNodeId(page, rfType) {
+  return await page.evaluate(t => {
+    const list = [...document.querySelectorAll('.react-flow__node-' + t)]
+    return list.length
+      ? list[list.length - 1].getAttribute('data-id')
+      : null
+  }, rfType)
+}
+
+/* Draw a connection between two nodes by pressing on a source handle and
+   dragging to the target's input handle, animated through intermediate
+   steps so the synthetic cursor traces a visible curve. `fromHandleId`
+   selects between condition's TRUE / FALSE outputs (omit for nodes with a
+   single output). */
+async function drawEdge(page, fromNodeId, toNodeId, fromHandleId) {
+  const srcSel = fromHandleId
+    ? `.react-flow__node[data-id="${fromNodeId}"] .react-flow__handle-right[data-handleid="${fromHandleId}"]`
+    : `.react-flow__node[data-id="${fromNodeId}"] .react-flow__handle-right`
+  const tgtSel = `.react-flow__node[data-id="${toNodeId}"] .react-flow__handle-left`
+  const src = await page.locator(srcSel).first().boundingBox()
+  const tgt = await page.locator(tgtSel).first().boundingBox()
+  if (!src || !tgt) { console.warn('drawEdge: handle not found', { fromNodeId, toNodeId, fromHandleId }); return }
+  const sx = src.x + src.width/2, sy = src.y + src.height/2
+  const tx = tgt.x + tgt.width/2, ty = tgt.y + tgt.height/2
+
+  await page.mouse.move(sx, sy, { steps: 18 })
+  await page.waitForTimeout(160)
+  await page.mouse.down()
+  // Bow the path slightly so the cursor doesn't travel in a straight
+  // line — feels more like a hand-drawn arrow.
+  const midX = (sx + tx) / 2
+  const midY = (sy + ty) / 2 - 30
+  await page.mouse.move(midX, midY, { steps: 16 })
+  await page.mouse.move(tx, ty,   { steps: 18 })
+  await page.waitForTimeout(120)
+  await page.mouse.up()
+  await page.waitForTimeout(500)
 }
 
 /* Drag a palette item to a target point on the canvas.
@@ -225,13 +274,29 @@ await authCtx.close()
   await page.evaluate(CLEAN_JS)
   await page.waitForTimeout(400)
 
-  // Drag always-visible items so the demo is reliable.
+  // ─── 1. Drop palette items onto the canvas. Spread them out so the
+  //       subsequent wiring traces are clearly visible.
   await dragPaletteToCanvas(page, 'IF / Condition', 500, 380).catch(e => console.warn('drop1:', e.message))
+  const condId = await lastNodeId(page, 'condition')
   await page.waitForTimeout(700)
-  await dragPaletteToCanvas(page, 'mock-openai',    720, 320).catch(e => console.warn('drop2:', e.message))
+
+  await dragPaletteToCanvas(page, 'mock-openai',    780, 280).catch(e => console.warn('drop2:', e.message))
+  const oaiId  = await lastNodeId(page, 'provider')
   await page.waitForTimeout(700)
-  await dragPaletteToCanvas(page, 'mock-anthropic', 720, 460).catch(e => console.warn('drop3:', e.message))
-  await page.waitForTimeout(1000)
+
+  await dragPaletteToCanvas(page, 'mock-anthropic', 780, 480).catch(e => console.warn('drop3:', e.message))
+  const antId  = await lastNodeId(page, 'provider')
+  await page.waitForTimeout(900)
+
+  // ─── 2. Wire the route. req-d / res-d are seeded; the rest were just
+  //       dropped. Order: request → condition; condition.TRUE → openai;
+  //       condition.FALSE → anthropic; both providers → response.
+  if (condId) await drawEdge(page, 'req-d',  condId)
+  if (condId && oaiId)  await drawEdge(page, condId, oaiId, 'true')
+  if (condId && antId)  await drawEdge(page, condId, antId, 'false')
+  if (oaiId)  await drawEdge(page, oaiId, 'res-d')
+  if (antId)  await drawEdge(page, antId, 'res-d')
+  await page.waitForTimeout(1400)
 
   const vidPath = await page.video().path()
   await ctx.close()
